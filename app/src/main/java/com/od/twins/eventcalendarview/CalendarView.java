@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -39,21 +38,7 @@ public class CalendarView extends LinearLayout {
     private EventHandler eventHandler = null;
     // internal components
     private LinearLayout header;
-    private ImageView btnPrev;
-    private ImageView btnNext;
-    private TextView txtDate;
     private GridView grid;
-
-    // seasons' rainbow
-    int[] rainbow = new int[]{
-            R.color.summer,
-            R.color.fall,
-            R.color.winter,
-            R.color.spring
-    };
-
-    // month-season association (northern hemisphere, sorry australia :)
-    int[] monthSeason = new int[]{2, 2, 3, 3, 3, 0, 0, 0, 1, 1, 1, 2};
 
     public CalendarView(Context context) {
         super(context);
@@ -99,44 +84,23 @@ public class CalendarView extends LinearLayout {
     private void assignUiElements() {
         // layout is inflated, assign local variables to components
         header = (LinearLayout) findViewById(R.id.calendar_header);
-        btnPrev = (ImageView) findViewById(R.id.calendar_prev_button);
-        btnNext = (ImageView) findViewById(R.id.calendar_next_button);
-        txtDate = (TextView) findViewById(R.id.calendar_date_display);
         grid = (GridView) findViewById(R.id.calendar_grid);
     }
 
     private void assignClickHandlers() {
-        // add one month and refresh UI
-        btnNext.setOnClickListener(new OnClickListener() {
+//         long-pressing a day
+        grid.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
             @Override
-            public void onClick(View v) {
-                currentDate.add(Calendar.MONTH, 1);
-                updateCalendar();
+            public boolean onItemLongClick(AdapterView<?> view, View cell, int position, long id) {
+                // handle long-press
+                if (eventHandler == null)
+                    return false;
+
+                eventHandler.onDayLongPress((Date) view.getItemAtPosition(position));
+                return true;
             }
         });
-
-        // subtract one month and refresh UI
-        btnPrev.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                currentDate.add(Calendar.MONTH, -1);
-                updateCalendar();
-            }
-        });
-
-        // long-pressing a day
-//        grid.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-//
-//            @Override
-//            public boolean onItemLongClick(AdapterView<?> view, View cell, int position, long id) {
-//                // handle long-press
-//                if (eventHandler == null)
-//                    return false;
-//
-//                eventHandler.onDayLongPress((Date) view.getItemAtPosition(position));
-//                return true;
-//            }
-//        });
 
         grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -144,7 +108,7 @@ public class CalendarView extends LinearLayout {
                 Log.d("CalendarView", "Date click : " + i);
                 // handle long-press
                 if (eventHandler != null)
-                    eventHandler.onDayLongPress((Date) adapterView.getItemAtPosition(i));
+                    eventHandler.onDayPress((Date) adapterView.getItemAtPosition(i));
             }
         });
     }
@@ -179,18 +143,11 @@ public class CalendarView extends LinearLayout {
         // update grid
         grid.setAdapter(new CalendarAdapter(getContext(), cells, events));
 
-        // update title
+//        // update title
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
-        txtDate.setText(sdf.format(currentDate.getTime()));
-
-        // set header color according to current season
-        int month = currentDate.get(Calendar.MONTH);
-        int season = monthSeason[month];
-        int color = rainbow[season];
-
-        header.setBackgroundColor(getResources().getColor(color));
+        if (eventHandler != null)
+            eventHandler.changeTitle(sdf.format(currentDate.getTime()));
     }
-
 
     private class CalendarAdapter extends ArrayAdapter<Date> {
         // days with events
@@ -274,5 +231,9 @@ public class CalendarView extends LinearLayout {
      */
     public interface EventHandler {
         void onDayLongPress(Date date);
+
+        void onDayPress(Date date);
+
+        void changeTitle(String month);
     }
 }
