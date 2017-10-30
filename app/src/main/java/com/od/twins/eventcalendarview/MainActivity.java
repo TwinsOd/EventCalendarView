@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 
@@ -30,11 +31,10 @@ public class MainActivity extends AppCompatActivity {
         date3.setDate(6);
         events.add(date3);
 
-        CalendarView cv = findViewById(R.id.calendar_view);
-        cv.updateCalendar(events);
-
+        EventCalendarView eventCalendarView = findViewById(R.id.calendar_view);
+        Calendar calendar = Calendar.getInstance();
         // assign event handler
-        cv.setEventHandler(new CalendarView.EventHandler() {
+        eventCalendarView.setEventHandler(new EventCalendarView.EventHandler() {
             @Override
             public void onDayLongPress(Date date) {
                 // show returned day
@@ -53,8 +53,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void changeTitle(String month) {
                 if (!TextUtils.isEmpty(month))
-                    getActionBar().setTitle(month);
+                    setTitle(month);
             }
         });
+        calendar.add(Calendar.MONTH, 0);
+        eventCalendarView.setCurrentDate(calendar);
+        eventCalendarView.addEvent(events);
     }
 }

@@ -8,7 +8,7 @@
     android:orientation="vertical"
     tools:context="com.od.twins.eventcalendarview.MainActivity">
 
-    <com.od.twins.eventcalendarview.CalendarView
+    <com.od.twins.eventcalendarview.EventCalendarView
         android:id="@+id/calendar_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>

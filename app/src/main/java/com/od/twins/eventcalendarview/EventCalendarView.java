@@ -25,7 +25,7 @@ import java.util.HashSet;
  * Created by user on 10/27/2017.
  */
 
-public class CalendarView extends LinearLayout {
+public class EventCalendarView extends LinearLayout {
     // how many days to show, defaults to six weeks, 42 days
     private static final int DAYS_COUNT = 42;
     // default date format
@@ -33,23 +33,22 @@ public class CalendarView extends LinearLayout {
     // date format
     private String dateFormat;
     // current displayed month
-    private Calendar currentDate = Calendar.getInstance();
+    private Calendar currentDate;
     //event handling
     private EventHandler eventHandler = null;
     // internal components
-    private LinearLayout header;
     private GridView grid;
 
-    public CalendarView(Context context) {
+    public EventCalendarView(Context context) {
         super(context);
     }
 
-    public CalendarView(Context context, AttributeSet attrs) {
+    public EventCalendarView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initControl(context, attrs);
     }
 
-    public CalendarView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public EventCalendarView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initControl(context, attrs);
     }
@@ -62,29 +61,23 @@ public class CalendarView extends LinearLayout {
         inflater.inflate(R.layout.control_calendar, this);
 
         loadDateFormat(attrs);
-        assignUiElements();
+        grid = (GridView) findViewById(R.id.calendar_grid);
         assignClickHandlers();
 
-        updateCalendar();
+        addEvent();
     }
 
     private void loadDateFormat(AttributeSet attrs) {
-        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.CalendarView);
+        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.EventCalendarView);
 
         try {
             // try to load provided date format, and fallback to default otherwise
-            dateFormat = ta.getString(R.styleable.CalendarView_dateFormat);
+            dateFormat = ta.getString(R.styleable.EventCalendarView_dateFormat);
             if (dateFormat == null)
                 dateFormat = DATE_FORMAT;
         } finally {
             ta.recycle();
         }
-    }
-
-    private void assignUiElements() {
-        // layout is inflated, assign local variables to components
-        header = (LinearLayout) findViewById(R.id.calendar_header);
-        grid = (GridView) findViewById(R.id.calendar_grid);
     }
 
     private void assignClickHandlers() {
@@ -113,17 +106,23 @@ public class CalendarView extends LinearLayout {
         });
     }
 
-    /**
-     * Display dates correctly in grid
-     */
-    public void updateCalendar() {
-        updateCalendar(null);
+    public void setCurrentDate(Calendar currentDate) {
+        this.currentDate = currentDate;
     }
 
     /**
      * Display dates correctly in grid
      */
-    public void updateCalendar(HashSet<Date> events) {
+    public void addEvent() {
+        addEvent(null);
+    }
+
+    /**
+     * Display dates correctly in grid
+     */
+    public void addEvent(HashSet<Date> events) {
+        if (currentDate == null)
+            currentDate = Calendar.getInstance();
         ArrayList<Date> cells = new ArrayList<>();
         Calendar calendar = (Calendar) currentDate.clone();
 
@@ -185,12 +184,12 @@ public class CalendarView extends LinearLayout {
             numberView.setTypeface(null, Typeface.NORMAL);
             numberView.setTextColor(Color.BLACK);
 
-            if (month != today.getMonth() || year != today.getYear()) {
+            if (month != currentDate.get(Calendar.MONTH) && year != currentDate.get(Calendar.YEAR)) {
                 // if this day is outside current month, grey it out
                 numberView.setTextColor(getResources().getColor(R.color.greyed_out));
             }
 
-            if (day == today.getDate()) {
+            if (day == today.getDate() && month == today.getMonth() && year == today.getYear()) {
                 // if it is today, set it to blue/bold
                 numberView.setTypeface(null, Typeface.BOLD);
                 numberView.setTextColor(getResources().getColor(R.color.today));
@@ -210,7 +209,6 @@ public class CalendarView extends LinearLayout {
                     }
                 }
             }
-
             // set text
             numberView.setText(String.valueOf(date.getDate()));
 
